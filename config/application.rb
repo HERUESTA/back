@@ -7,7 +7,9 @@ require "rails/all"
 Bundler.require(*Rails.groups)
 
 # Load environment variables from .env file
-Dotenv::Railtie.load
+if Rails.env.development? || Rails.env.test?
+  Dotenv::Railtie.load
+end
 
 module App
   class Application < Rails::Application
@@ -17,9 +19,5 @@ module App
     config.time_zone = 'Tokyo'
     config.active_record.default_timezone = :local
     config.i18n.default_locale = :ja
-  end
-
-  group :development, :test do
-    gem 'dotenv-rails'
   end
 end
