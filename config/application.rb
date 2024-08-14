@@ -18,4 +18,8 @@ module App
     config.active_record.default_timezone = :local
     config.i18n.default_locale = :ja
   end
+
+  group :development, :test do
+    gem 'dotenv-rails'
+  end
 end
