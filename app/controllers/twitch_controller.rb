@@ -1,34 +1,51 @@
-require 'httparty'
-
+# app/controllers/twitch_controller.rb
 class TwitchController < ApplicationController
-  def index
-    streamer_id = params[:id]
-    access_token = fetch_access_token
-    videos = fetch_videos(streamer_id, access_token)
+  require 'net/http'
+  require 'uri'
+  require 'json'
 
-    render json: videos
+  def show
+    streamer_name = params[:id]
+    user_id = get_user_id(streamer_name)
+    
+    if user_id.nil?
+      render json: { error: "User not found" }, status: :not_found
+      return
+    end
+
+    uri = URI("https://api.twitch.tv/helix/videos?user_id=#{user_id}")
+    request = Net::HTTP::Get.new(uri)
+    request['Client-ID'] = ENV['TWITCH_CLIENT_ID']
+    request['Authorization'] = "Bearer #{ENV['TWITCH_ACCESS_TOKEN']}"
+
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+      http.request(request)
+    end
+
+    if response.is_a?(Net::HTTPSuccess)
+      render json: JSON.parse(response.body)
+    else
+      render json: { error: response.message, body: response.body, status_code: response.code }, status: response.code
+    end
   end
 
   private
 
-  def fetch_access_token
-    response = HTTParty.post('https://id.twitch.tv/oauth2/token', {
-      body: {
-        client_id: ENV['TWITCH_CLIENT_ID'],
-        client_secret: ENV['TWITCH_CLIENT_SECRET'],
-        grant_type: 'client_credentials'
-      }
-    })
-    response.parsed_response['access_token']
-  end
+  def get_user_id(streamer_name)
+    uri = URI("https://api.twitch.tv/helix/users?login=#{streamer_name}")
+    request = Net::HTTP::Get.new(uri)
+    request['Client-ID'] = ENV['TWITCH_CLIENT_ID']
+    request['Authorization'] = "Bearer #{ENV['TWITCH_ACCESS_TOKEN']}"
 
-  def fetch_videos(streamer_id, access_token)
-    response = HTTParty.get("https://api.twitch.tv/helix/videos?user_id=#{streamer_id}", {
-      headers: {
-        'Client-ID' => ENV['TWITCH_CLIENT_ID'],
-        'Authorization' => "Bearer #{access_token}"
-      }
-    })
-    response.parsed_response['data']
+    response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+      http.request(request)
+    end
+
+    if response.is_a?(Net::HTTPSuccess)
+      user_data = JSON.parse(response.body)
+      user_data['data'].first['id'] if user_data['data'].any?
+    else
+      nil
+    end
   end
 end
