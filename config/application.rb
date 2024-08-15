@@ -19,5 +19,13 @@ module App
     config.time_zone = 'Tokyo'
     config.active_record.default_timezone = :local
     config.i18n.default_locale = :ja
+
+    # CORS設定
+    config.middleware.insert_before 0, Rack::Cors do
+      allow do
+        origins 'localhost:3000', 'front-pink-nine.vercel.app'
+        resource '*', headers: :any, methods: [:get, :post, :patch, :put, :delete, :options, :head]
+      end
+    end
   end
 end
