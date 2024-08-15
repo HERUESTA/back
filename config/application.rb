@@ -26,5 +26,10 @@ module App
         resource '*', headers: :any, methods: [:get, :post, :patch, :put, :delete, :options, :head]
       end
     end
+
+    # CSP設定を追加
+    config.action_dispatch.default_headers = {
+      'Content-Security-Policy' => "frame-ancestors 'self' http://localhost:* https://localhost:* https://clips.twitch.tv"
+    }
   end
 end
