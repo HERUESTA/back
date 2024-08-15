@@ -13,7 +13,7 @@ class TwitchController < ApplicationController
       return
     end
 
-    uri = URI("https://api.twitch.tv/helix/videos?user_id=#{user_id}")
+    uri = URI("https://api.twitch.tv/helix/clips?broadcaster_id=#{user_id}")
     request = Net::HTTP::Get.new(uri)
     request['Client-ID'] = ENV['TWITCH_CLIENT_ID']
     request['Authorization'] = "Bearer #{ENV['TWITCH_ACCESS_TOKEN']}"
