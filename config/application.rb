@@ -29,7 +29,7 @@ module App
 
     # CSP設定を追加
     config.action_dispatch.default_headers = {
-      'Content-Security-Policy' => "frame-ancestors 'self' http://localhost:* https://front-pink-nine.vercel.app https://twitch-back-885f64c14cf8.herokuapp.com https://clips.twitch.tv"
+      'Content-Security-Policy' => "frame-ancestors 'self' https://front-pink-nine.vercel.app https://twitch-back-885f64c14cf8.herokuapp.com https://clips.twitch.tv"
     }
   end
 end
