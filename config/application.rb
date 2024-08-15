@@ -2,8 +2,11 @@ require_relative "boot"
 
 require "rails/all"
 
+# Require the gems listed in Gemfile, including any gems
+# you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
+# Load environment variables from .env file
 if Rails.env.development? || Rails.env.test?
   Dotenv::Railtie.load
 end
@@ -26,7 +29,7 @@ module App
 
     # CSP設定を追加
     config.action_dispatch.default_headers = {
-      'Content-Security-Policy' => "frame-ancestors 'self' http://localhost:* https://localhost:* https://front-pink-nine.vercel.app https://twitch-back-885f64c14cf8.herokuapp.com https://clips.twitch.tv"
+      'Content-Security-Policy' => "frame-ancestors 'self' https://front-pink-nine.vercel.app https://twitch-back-885f64c14cf8.herokuapp.com"
     }
   end
 end
