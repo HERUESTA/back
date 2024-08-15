@@ -12,7 +12,7 @@ class TwitchController < ApplicationController
       return
     end
 
-    uri = URI("https://api.twitch.tv/helix/clips?broadcaster_id=#{user_id}&language=ja")
+    uri = URI("https://api.twitch.tv/helix/clips?broadcaster_id=#{user_id}")
     request = Net::HTTP::Get.new(uri)
     request['Client-ID'] = ENV['TWITCH_CLIENT_ID']
     request['Authorization'] = "Bearer #{ENV['TWITCH_ACCESS_TOKEN']}"
@@ -22,7 +22,9 @@ class TwitchController < ApplicationController
     end
 
     if response.is_a?(Net::HTTPSuccess)
-      render json: JSON.parse(response.body)
+      clips = JSON.parse(response.body)['data']
+      japanese_clips = clips.select { |clip| clip['language'] == 'ja' }
+      render json: japanese_clips
     else
       render json: { error: response.message, body: response.body, status_code: response.code }, status: response.code
     end
@@ -42,10 +44,8 @@ class TwitchController < ApplicationController
 
     if response.is_a?(Net::HTTPSuccess)
       user_data = JSON.parse(response.body)
-      puts "User data: #{user_data}"  # デバッグ用の出力
       user_data['data'].first['id'] if user_data['data'].any?
     else
-      puts "Failed to get user ID: #{response.message}"  # デバッグ用の出力
       nil
     end
   end
