@@ -22,14 +22,14 @@ module App
     # CORS設定を追加
     config.middleware.insert_before 0, Rack::Cors do
       allow do
-        origins 'localhost:3000', 'front-pink-nine.vercel.app'
+        origins 'localhost:3000', 'front-pink-nine.vercel.app', 'twitch-back-885f64c14cf8.herokuapp.com'
         resource '*', headers: :any, methods: [:get, :post, :patch, :put, :delete, :options, :head]
       end
     end
 
     # CSP設定を追加
     config.action_dispatch.default_headers = {
-      'Content-Security-Policy' => "frame-ancestors 'self' http://localhost:* https://localhost:* https://clips.twitch.tv"
+      'Content-Security-Policy' => "frame-ancestors 'self' https://twitch-back-885f64c14cf8.herokuapp.com https://clips.twitch.tv"
     }
   end
 end
