@@ -36,15 +36,17 @@ class TwitchController < ApplicationController
     request = Net::HTTP::Get.new(uri)
     request['Client-ID'] = ENV['TWITCH_CLIENT_ID']
     request['Authorization'] = "Bearer #{ENV['TWITCH_ACCESS_TOKEN']}"
-
+  
     response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
       http.request(request)
     end
-
+  
     if response.is_a?(Net::HTTPSuccess)
       user_data = JSON.parse(response.body)
+      puts "User data: #{user_data}"  # デバッグ用の出力
       user_data['data'].first['id'] if user_data['data'].any?
     else
+      puts "Failed to get user ID: #{response.message}"  # デバッグ用の出力
       nil
     end
   end
