@@ -12,7 +12,7 @@ class TwitchController < ApplicationController
       return
     end
 
-    uri = URI("https://api.twitch.tv/helix/videos?user_id=#{user_id}")
+    uri = URI("https://api.twitch.tv/helix/clips?broadcaster_id=#{user_id}")
     response = send_twitch_request(uri)
 
     if response.is_a?(Net::HTTPSuccess)
