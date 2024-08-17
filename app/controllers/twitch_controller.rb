@@ -3,6 +3,7 @@ class TwitchController < ApplicationController
   require 'uri'
   require 'json'
 
+  # 配信者ID検索
   def show
     streamer_name = params[:id]
     user_id = get_user_id(streamer_name)
@@ -21,6 +22,28 @@ class TwitchController < ApplicationController
       # クリップのlanguageがjaのものだけを選択
       japanese_clips = clips.select { |clip| clip["language"] == "ja" }
 
+      render json: japanese_clips
+    else
+      render json: { error: response.message, body: response.body, status_code: response.code }, status: response.code
+    end
+  end
+
+  # ゲーム名検索
+  def search_clips_by_game
+    game_name = params[:game_name]
+    game_id = get_game_id(game_name)
+
+    if game_id.nill?
+      render json: { error: "ゲームが見つかりませんでした" }, status: :not_found
+      return
+    end
+
+    uri = URI("https://api.twitch.tv/helix/clips?game_id=#{game_id}&first=10")
+    response = send_twitch_request(uri)
+
+    if response.is_a?(Net::HTTPSuccess)
+      clips = JSON.parse(response.body)['data']
+      japanese_clips = clips.select { |clip| clip['language'] == 'ja' }
       render json: japanese_clips
     else
       render json: { error: response.message, body: response.body, status_code: response.code }, status: response.code
