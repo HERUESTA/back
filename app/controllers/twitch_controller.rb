@@ -13,7 +13,7 @@ class TwitchController < ApplicationController
       return
     end
 
-    uri = URI("https://api.twitch.tv/helix/clips?broadcaster_id=#{user_id}&language=ja")
+    uri = URI("https://api.twitch.tv/helix/clips?broadcaster_id=#{user_id}")
     response = send_twitch_request(uri)
 
     if response.is_a?(Net::HTTPSuccess)
@@ -22,33 +22,38 @@ class TwitchController < ApplicationController
       # クリップのlanguageがjaのものだけを選択
       japanese_clips = clips.select { |clip| clip["language"] == "ja" }
 
-      render json: japanese_clips
+      render json: {data: japanese_clips}
     else
       render json: { error: response.message, body: response.body, status_code: response.code }, status: response.code
     end
   end
 
   # ゲーム名検索
-  def search_clips_by_game
-    game_name = params[:game_name]
-    game_id = get_game_id(game_name)
+def clips_by_game
+  game_name = params[:game_name]
 
-    if game_id.nill?
-      render json: { error: "ゲームが見つかりませんでした" }, status: :not_found
-      return
-    end
+  # ゲーム名からゲームIDを取得
+  game_id = get_game_id(game_name)
 
-    uri = URI("https://api.twitch.tv/helix/clips?game_id=#{game_id}&first=10")
-    response = send_twitch_request(uri)
+  # デバッグ用ログ出力
+  Rails.logger.info("Game name: #{game_name}, Game ID: #{game_id}")
 
-    if response.is_a?(Net::HTTPSuccess)
-      clips = JSON.parse(response.body)['data']
-      japanese_clips = clips.select { |clip| clip['language'] == 'ja' }
-      render json: japanese_clips
-    else
-      render json: { error: response.message, body: response.body, status_code: response.code }, status: response.code
-    end
+  if game_id.nil?
+    render json: { error: "ゲームが見つかりませんでした" }, status: :not_found
+    return
   end
+
+  uri = URI("https://api.twitch.tv/helix/clips?game_id=#{game_id}&first=100")
+  response = send_twitch_request(uri)
+
+  if response.is_a?(Net::HTTPSuccess)
+    clips = JSON.parse(response.body)['data']
+    japanese_clips = clips.select { |clip| clip['language'] == 'ja' }
+    render json: japanese_clips
+  else
+    render json: { error: response.message, body: response.body, status_code: response.code }, status: response.code
+  end
+end
 
   private
 
@@ -74,5 +79,17 @@ class TwitchController < ApplicationController
     end
 
     response
+  end
+
+  def get_game_id(game_name)
+    uri = URI("https://api.twitch.tv/helix/games?name=#{URI.encode_www_form_component(game_name)}")
+    response = send_twitch_request(uri)
+
+    if response.is_a?(Net::HTTPSuccess)
+      game_data = JSON.parse(response.body)
+      game_data['data'].first['id'] if game_data['data'].any?
+    else
+      nil
+    end
   end
 end
