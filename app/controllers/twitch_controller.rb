@@ -12,11 +12,16 @@ class TwitchController < ApplicationController
       return
     end
 
-    uri = URI("https://api.twitch.tv/helix/clips?broadcaster_id=#{user_id}")
+    uri = URI("https://api.twitch.tv/helix/clips?broadcaster_id=#{user_id}&language=ja")
     response = send_twitch_request(uri)
 
     if response.is_a?(Net::HTTPSuccess)
-      render json: JSON.parse(response.body)
+      clips = JSON.parse(response.body)["data"]
+
+      # クリップのlanguageがjaのものだけを選択
+      japanese_clips = clips.select { |clip| clip["language"] == "ja" }
+
+      render json: japanese_clips
     else
       render json: { error: response.message, body: response.body, status_code: response.code }, status: response.code
     end
