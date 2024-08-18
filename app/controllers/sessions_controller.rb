@@ -1,6 +1,8 @@
 class SessionsController < ApplicationController
 
   def new
+    # Twitchの認証を開始するために、/auth/twitch にリダイレクトします
+    redirect_to '/auth/twitch'
   end
 
   def create
