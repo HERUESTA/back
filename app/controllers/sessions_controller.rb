@@ -1,7 +1,8 @@
 class SessionsController < ApplicationController
 
   def new
-    # Twitchの認証を開始するために、/auth/twitch にリダイレクトします
+    # OmniAuthのTwitch認証を開始するため、Twitchの認証エンドポイントにリダイレクトします
+    redirect_to '/auth/twitch/callback'
     
   end
 
