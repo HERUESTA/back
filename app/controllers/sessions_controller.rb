@@ -1,10 +1,5 @@
 class SessionsController < ApplicationController
 
-  def new
-    # OmniAuthのTwitch認証を開始するため、Twitchの認証エンドポイントにリダイレクトします
-    redirect_to '/auth/twitch'
-  end
-
   def create
     auth = request.env['omniauth.auth']
     if auth.nil?
