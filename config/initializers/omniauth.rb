@@ -1,3 +1,4 @@
+# config/initializers/omniauth.rb
 require 'omniauth'
 require 'omniauth/rails_csrf_protection'
 
