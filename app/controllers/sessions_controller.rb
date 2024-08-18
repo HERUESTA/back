@@ -1,12 +1,9 @@
 class SessionsController < ApplicationController
 
   def new
-    redirect_to '/auth/twitch/'
   end
-  
+
   def create
-    Rails.logger.info "OmniAuth callback reached"
-    Rails.logger.info "Request env: #{request.env.inspect}"
     auth = request.env['omniauth.auth']
     if auth.nil?
       Rails.logger.error "OmniAuth auth hash is nil"
