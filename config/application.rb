@@ -8,7 +8,7 @@ Bundler.require(*Rails.groups)
 
 # Load environment variables from .env file
 if Rails.env.development? || Rails.env.test?
-  Dotenv::Railtie.load
+  Dotenv::Rails.load
 end
 
 module App
@@ -18,5 +18,9 @@ module App
     config.time_zone = 'Tokyo'
     config.active_record.default_timezone = :local
     config.i18n.default_locale = :ja
+    # セッションを有効にする設定
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore, key: '_back_session'
+    config.middleware.use ActionDispatch::Flash
   end
 end

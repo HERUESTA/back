@@ -3,6 +3,9 @@ class TwitchController < ApplicationController
   require 'uri'
   require 'json'
 
+  #root
+  def index
+  end
   # 配信者ID検索
   def show
     streamer_name = params[:id]
