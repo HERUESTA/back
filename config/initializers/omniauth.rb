@@ -3,7 +3,7 @@ require 'omniauth/rails_csrf_protection'
 
 Rails.application.config.middleware.use OmniAuth::Builder do
   provider :twitch, ENV['TWITCH_CLIENT_ID'], ENV['TWITCH_CLIENT_SECRET'], {
-    scope: 'user_read',
+    scope: 'user:read:email',
     callback_path: '/auth/twitch/callback'
   }
 end
