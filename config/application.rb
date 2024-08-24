@@ -2,8 +2,6 @@ require_relative "boot"
 
 require "rails/all"
 
-# Require the gems listed in Gemfile, including any gems
-# you've limited to :test, :development, or :production.
 Bundler.require(*Rails.groups)
 
 # Load environment variables from .env file
@@ -21,5 +19,6 @@ module App
 
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore, key: '_back_session'
+    config.action_controller.forgery_protection_origin_check = false;
   end
 end

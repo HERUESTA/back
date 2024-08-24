@@ -20,22 +20,10 @@ gem 'httparty'
 
 gem 'rack-cors', require: 'rack/cors'
 
-gem 'omniauth', '~> 2.1'
-gem 'omniauth-twitch', '~> 1.2'
-gem 'omniauth-oauth2', '~> 1.8'
-gem 'hashie', '~> 5.0'
-gem 'oauth2', '~> 2.0'
-gem 'faraday', '~> 2.10'
-gem 'jwt', '~> 2.8'
-gem 'rack-protection', '~> 3.2'
-gem 'snaky_hash', '~> 2.0'
-gem 'version_gem', '~> 1.1'
-gem 'faraday-net_http', '~> 3.1'
-gem 'logger', '~> 1.6'
-gem 'base64', '~> 0.2'
-gem 'net-http', '~> 0.4'
-gem 'uri', '~> 0.13'
-
+# Twitch-Token
+gem 'omniauth'
+gem 'omniauth-oauth2'
+gem 'omniauth-twitch'
 gem 'omniauth-rails_csrf_protection'
 
 group :development, :test do

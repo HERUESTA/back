@@ -223,32 +223,20 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  base64 (~> 0.2)
   bootsnap
   debug
   dotenv-rails
-  faraday (~> 2.10)
-  faraday-net_http (~> 3.1)
-  hashie (~> 5.0)
   httparty
-  jwt (~> 2.8)
-  logger (~> 1.6)
-  net-http (~> 0.4)
-  oauth2 (~> 2.0)
-  omniauth (~> 2.1)
-  omniauth-oauth2 (~> 1.8)
+  omniauth
+  omniauth-oauth2
   omniauth-rails_csrf_protection
-  omniauth-twitch (~> 1.2)
+  omniauth-twitch
   pg (~> 1.1)
   puma (~> 5.0)
   rack-cors
-  rack-protection (~> 3.2)
   rails (~> 7.0.8, >= 7.0.8.4)
-  snaky_hash (~> 2.0)
   sqlite3 (~> 1.4)
   tzinfo-data
-  uri (~> 0.13)
-  version_gem (~> 1.1)
 
 RUBY VERSION
    ruby 3.2.2p53
