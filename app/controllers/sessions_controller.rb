@@ -1,87 +1,156 @@
 class SessionsController < ApplicationController
-  
+  before_action :set_twitch_client_details, only: [:twitch]
 
   def twitch
     state = SecureRandom.hex(24)
     session[:twitch_state] = state
-    Rails.logger.debug "Session state set: #{session[:twitch_state]}"
 
-    client_id = ENV['TWITCH_CLIENT_ID']
-    redirect_uri = CGI.escape("#{request.base_url}/auth/twitch/callback")
-    scope = CGI.escape('user:read:email')
-
-    oauth_url = "https://id.twitch.tv/oauth2/authorize?client_id=#{client_id}&redirect_uri=#{redirect_uri}&response_type=code&scope=#{scope}&state=#{session[:twitch_state]}"
-    Rails.logger.debug "OAuth URL generated: #{oauth_url}"
-    Rails.logger.debug "OAuth URL generated: #{redirect_uri}"
-    Rails.logger.debug "=== State parameter from Twitch: #{params[:state]} ==="
-    Rails.logger.debug "Session state set: #{session[:twitch_state]}"
-
+    oauth_url = build_twitch_oauth_url(state)
     redirect_to oauth_url, allow_other_host: true
   end
 
-  def callback
-    Rails.logger.debug "=== Callback initiated with params: #{params} ==="
-    Rails.logger.debug "=== Session state at callback: #{session[:twitch_state]} ==="
-    Rails.logger.debug "=== State parameter from Twitch: #{params[:state]} ==="
-    Rails.logger.debug "code : #{params[:code]}"
+  def callback   
+    token_data = fetch_access_token(params[:code])
+    return render_error("アクセストークンの取得に失敗しました。", :unprocessable_entity) unless token_data
 
-    if params[:state] != session[:twitch_state]
-      Rails.logger.error "=== State parameter mismatch: expected #{session[:twitch_state]}, got #{params[:state]} ==="
-      redirect_to root_path
-      return
+    user_info = fetch_user_info(token_data['access_token'])
+    return render_error("ユーザー情報の取得に失敗しました。", :unprocessable_entity) unless user_info
+
+    user = find_or_create_user(user_info, token_data)
+    if user.save
+      sign_in_and_redirect(user)
+    else
+      log_and_render_save_error(user)
     end
-    
-    Rails.logger.debug "=== Sending request to Twitch for access token ==="
-    Rails.logger.debug "code : #{params[:code]}"
+  end
+
+  # フォローリストを取得するためのアクション
+  def follows
+    if current_user
+      follows = fetch_user_follows(current_user.token, current_user.uid)
+      render json: follows.map { |follow| { displayName: follow['broadcaster_name'], profileImageUrl: follow['profile_image_url'] } }
+    else
+      render json: { error: 'ユーザーがサインインしていません。' }, status: :unauthorized
+    end
+  end
+
+  def destroy
+    if current_user
+      Rails.logger.debug "User signed out: #{current_user.inspect}"
+      sign_out(current_user)
+    else
+      Rails.logger.warn "No user signed in"
+    end
+    reset_session
+    head :no_content
+  end
+
+  private
+
+  def set_twitch_client_details
+    @client_id = ENV.fetch('TWITCH_CLIENT_ID') 
+    @redirect_uri = ENV['REDIRECT_URI']
+    @scope = CGI.escape('user:read:email user:read:follows')
+  end
+
+  def build_twitch_oauth_url(state)
+    "https://id.twitch.tv/oauth2/authorize?client_id=#{@client_id}&redirect_uri=#{@redirect_uri}&response_type=code&scope=#{@scope}&state=#{state}"
+  end
+
+  def fetch_access_token(code)
     response = Faraday.post("https://id.twitch.tv/oauth2/token") do |req|
       req.body = {
         client_id: ENV['TWITCH_CLIENT_ID'],
         client_secret: ENV['TWITCH_CLIENT_SECRET'],
-        code: params[:code],
+        code: code,
         grant_type: 'authorization_code',
         redirect_uri: "#{request.base_url}/auth/twitch/callback"
       }
-      Rails.logger.debug "code : #{params[:code]}"
-      
     end
+    JSON.parse(response.body) if response.status == 200
+  end
 
-    if response.status != 200
-      Rails.logger.error "=== Failed to retrieve access token: #{response.body} ==="
-      redirect_to root_path
-      return
-    end
-
-    token_data = JSON.parse(response.body)
-    access_token = token_data['access_token']
-
-    Rails.logger.debug "=== Access Token retrieved: #{access_token} ==="
-
-    user_info_response = Faraday.get("https://api.twitch.tv/helix/users") do |req|
+  def fetch_user_info(access_token)
+    response = Faraday.get("https://api.twitch.tv/helix/users") do |req|
       req.headers['Authorization'] = "Bearer #{access_token}"
+      req.headers['Client-ID'] = ENV['TWITCH_CLIENT_ID']
+    end
+    JSON.parse(response.body)['data'].first if response.status == 200
+  end
+
+  # フォローしているストリームの情報を取得
+  def fetch_user_follows(access_token, user_id)
+    response = Faraday.get("https://api.twitch.tv/helix/channels/followed") do |req|
+      req.params['user_id'] = user_id
+      req.headers['Authorization'] = "Bearer #{access_token}"
+      req.headers['Client-ID'] = ENV['TWITCH_CLIENT_ID']
     end
 
-    if user_info_response.status != 200
-      Rails.logger.error "=== Failed to retrieve user info: #{user_info_response.body} ==="
-      redirect_to root_path
-      return
-    end
+    if response.status == 200
+      follows = JSON.parse(response.body)['data']
+      user_ids = follows.map { |follow| follow['broadcaster_id'] }
 
-    user_info = JSON.parse(user_info_response.body)['data'].first
-    Rails.logger.debug "=== User information retrieved: #{user_info} ==="
-
-    user = User.find_or_initialize_by(uid: user_info['id'])
-    user.name = user_info['display_name']
-    user.token = access_token
-    user.refresh_token = token_data['refresh_token']
-    user.expires_at = Time.now + token_data['expires_in'].to_i.seconds
-
-    if user.save
-      Rails.logger.debug "=== User #{user.name} was successfully saved. ==="
-      session[:user_id] = user.id
-      redirect_to "#{ENV['NEXT_PUBLIC_REDIRECT_AFTER_LOGIN_URL']}", notice: "ログインに成功しました"
+      # プロフィール画像を取得するために追加のAPIコールを実行
+      users_info = fetch_users_info(access_token, user_ids) # ユーザー情報を取得するメソッドを追加で呼び出し
+      follows.map do |follow|
+        user_info = users_info.find { |user| user['id'] == follow['broadcaster_id'] }
+        {
+          'broadcaster_name' => follow['broadcaster_name'],
+          'profile_image_url' => user_info ? user_info['profile_image_url'] : nil
+        }
+      end
     else
-      Rails.logger.error "=== Failed to save user: #{user.errors.full_messages.join(', ')} ==="
-      redirect_to root_path, alert: "ユーザー情報の保存に失敗しました。"
+      Rails.logger.error "Failed to fetch follows: #{response.body}"
+      []
     end
+  end
+
+  # 複数のユーザー情報を取得するメソッド
+  def fetch_users_info(access_token, user_ids)
+    response = Faraday.get("https://api.twitch.tv/helix/users") do |req|
+      req.params['id'] = user_ids
+      req.headers['Authorization'] = "Bearer #{access_token}"
+      req.headers['Client-ID'] = ENV['TWITCH_CLIENT_ID']
+    end
+    JSON.parse(response.body)['data'] if response.status == 200
+  end
+
+  def find_or_create_user(user_info, token_data)
+    User.find_or_initialize_by(uid: user_info['id']).tap do |user|
+      user.assign_attributes(
+        name: user_info['display_name'],
+        email: user_info['email'],
+        token: token_data['access_token'],
+        refresh_token: token_data['refresh_token'],
+        expires_at: Time.now + token_data['expires_in'].to_i.seconds,
+        profile_image_url: user_info['profile_image_url'],
+        password: Devise.friendly_token[0, 20]
+      )
+
+      # フォローリストを取得
+      follows = fetch_user_follows(token_data['access_token'], user_info['id'])
+      Rails.logger.debug "フォローリスト: #{follows}" # フォロー情報のデバッグログ
+
+      # フォローリストが存在する場合に保存
+      if follows.any?
+        Rails.logger.debug "保存フォローリスト: #{follows.inspect}" # フォロー情報のデバッグログ
+        user.followed_streamers = follows.map { |follow| follow['broadcaster_name'] }.join(", ")
+      end
+    end
+  end
+
+  def sign_in_and_redirect(user)
+    sign_in(user)
+    session[:user_id] = user.id
+    redirect_to ENV['NEXT_PUBLIC_REDIRECT_AFTER_LOGIN_URL'], allow_other_host: true
+  end
+
+  def log_and_render_save_error(user)
+    Rails.logger.error "=== Failed to save user: #{user.errors.full_messages.join(', ')} ==="
+    render json: { error: "ユーザー情報の保存に失敗しました。" }, status: :unprocessable_entity
+  end
+
+  def render_error(message, status)
+    render json: { error: message }, status: status
   end
 end

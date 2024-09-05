@@ -1,14 +1,24 @@
 Rails.application.routes.draw do
+  # Devise routes
+  devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' }
+
+  # Root route
   root 'twitch#index'
 
-  
+  # Twitch authentication routes
   get '/auth/twitch', to: 'sessions#twitch'
   get '/auth/twitch/callback', to: 'sessions#callback'
   get '/auth/failure', to: redirect('/')
+
+  # Logout route
   delete '/logout', to: 'sessions#destroy'
+
+  # Twitch routes
   get '/twitch/clips', to: 'twitch#clips_by_game'
   get '/twitch/:id', to: 'twitch#show'
 
-  # 他のルート設定
-  get '/csrf_token', to: 'application#csrf_token'
+  # User profile route
+  get '/api/user_profile', to: 'users#profile' # ユーザーのプロファイル情報を取得するエンドポイント
+
+  get '/api/follows', to: 'sessions#follows' # フォローリストを取得するエンドポイント
 end
