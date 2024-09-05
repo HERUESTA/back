@@ -5,7 +5,7 @@ class TwitchController < ApplicationController
 
   #root
   def index
-    redirect_to 'http://localhost:8000'  # Next.jsが動作しているURLにリダイレクト
+    redirect_to ENV['NEXT_PUBLIC_REDIRECT_AFTER_LOGIN_URL']  # Next.jsが動作しているURLにリダイレクト
   end
   # 配信者ID検索
   def show
