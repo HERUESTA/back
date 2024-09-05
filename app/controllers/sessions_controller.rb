@@ -4,6 +4,7 @@ class SessionsController < ApplicationController
   def twitch
     state = SecureRandom.hex(24)
     session[:twitch_state] = state
+    Rails.logger.debug "Redirect URI: #{@redirect_uri}" # デバッグ用ログ
 
     oauth_url = build_twitch_oauth_url(state)
     redirect_to oauth_url, allow_other_host: true
@@ -66,7 +67,7 @@ class SessionsController < ApplicationController
         grant_type: 'authorization_code',
         redirect_uri: "#{request.base_url}/auth/twitch/callback"
       }
-    end
+    end 
     JSON.parse(response.body) if response.status == 200
   end
 
