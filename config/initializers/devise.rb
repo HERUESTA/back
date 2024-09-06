@@ -6,6 +6,10 @@ Devise.setup do |config|
 
   require 'devise/orm/active_record'
 
+    # セッションの有効期限設定
+    config.timeout_in = 30.minutes
+    config.remember_for = 2.weeks
+
 
   config.case_insensitive_keys = [:email]
 
