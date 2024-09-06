@@ -11,14 +11,27 @@ class SessionsController < ApplicationController
   end
 
   def callback   
+    Rails.logger.debug "Twitch OAuth callback received with code: #{params[:code]}" # デバッグ用ログ
+    
     token_data = fetch_access_token(params[:code])
-    return render_error("アクセストークンの取得に失敗しました。", :unprocessable_entity) unless token_data
+    if token_data.nil?
+      Rails.logger.error "アクセストークンの取得に失敗しました" # エラーログ
+      return render_error("アクセストークンの取得に失敗しました。", :unprocessable_entity) unless token_data
+    end
+
+    Rails.logger.debug "Access Token Data' #{token_data}" # トークンデータのデバッグ用ログ
 
     user_info = fetch_user_info(token_data['access_token'])
-    return render_error("ユーザー情報の取得に失敗しました。", :unprocessable_entity) unless user_info
+    if user_info.nil?
+      Rails.logger.error "ユーザー情報の取得に失敗しました" # エラーロ
+      return render_error("ユーザー情報の取得に失敗しました。", :unprocessable_entity) unless user_info
+    end
+
+    Rails.logger.debug "User Info: #{user_info}" # ユーザー情報のデバッグ用ログ
 
     user = find_or_create_user(user_info, token_data)
     if user.save
+      Rails.logger.debug "User saved successfully: #{user.inspect}" # ユーザーが保存された場合のデバッグ用ログ
       sign_in_and_redirect(user)
     else
       log_and_render_save_error(user)
@@ -28,9 +41,12 @@ class SessionsController < ApplicationController
   # フォローリストを取得するためのアクション
   def follows
     if current_user
+      Rails.logger.debug "Current user: #{current_user.inspect}" # 現在のユーザー情報のデバッグ用ログ
       follows = fetch_user_follows(current_user.token, current_user.uid)
+      Rails.logger.debug "Fetched Follows: #{follows}" # フォローリスト取得のデバッグ用ログ
       render json: follows.map { |follow| { displayName: follow['broadcaster_name'], profileImageUrl: follow['profile_image_url'] } }
     else
+      Rails.logger.warn "Unauthorized access to follows action" # 認証されていないアクセスの警告ログ
       render json: { error: 'ユーザーがサインインしていません。' }, status: :unauthorized
     end
   end
@@ -143,6 +159,7 @@ class SessionsController < ApplicationController
   def sign_in_and_redirect(user)
     sign_in(user)
     session[:user_id] = user.id
+    Rails.logger.debug "User signed in and session set for user_id: #{user.id}" # ユーザーのサインインのデバッグ用ログ
     redirect_to ENV['NEXT_PUBLIC_REDIRECT_AFTER_LOGIN_URL'], allow_other_host: true
   end
 
