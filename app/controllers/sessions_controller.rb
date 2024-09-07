@@ -36,6 +36,7 @@ class SessionsController < ApplicationController
 
     user = find_or_create_user(user_info, token_data)
     if user.save
+      Rails.logger.debug "Session after callback: #{session.to_hash}" # セッションデータのデバッグログ
       Rails.logger.debug "User saved successfully: #{user.inspect}" # ユーザーが保存された場合のデバッグ用ログ
       sign_in_and_redirect(user)
     else
