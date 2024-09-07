@@ -1,12 +1,20 @@
 class UsersController < ApplicationController
   include Devise::Controllers::Helpers
-  before_action :authenticate_user!
+  before_action :authenticate_user!, only: [:profile]
 
   def profile
-    Rails.logger.debug "Session data at profile: #{session.to_hash}" # セッションデータのデバッグログ
-    Rails.logger.debug "Session in profile: #{session.inspect}" # プロフィール取得後のセッションの状態をデバッグログに記録
+    # セッションデータのデバッグログ
+    Rails.logger.debug "Session data at profile: #{session.to_hash}" 
+
+    # セッション情報が存在するか確認
+    if session[:user_id].nil?
+      Rails.logger.warn "No user session found. Redirecting to sign in."
+      return render json: { error: 'セッションが見つかりません。サインインしてください。' }, status: :unauthorized
+    end
+
+    # current_userが存在するかどうかチェック
     unless current_user
-      Rails.logger.warn "Unauthorized access attempt detected" # 認証されていないアクセスの警告ログ
+      Rails.logger.warn "Unauthorized access attempt detected" 
       return render json: { error: 'ユーザーがサインインしていません。' }, status: :unauthorized
     end
     
