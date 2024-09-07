@@ -1,13 +1,12 @@
 class ApplicationController < ActionController::Base
   include ActionController::RequestForgeryProtection
-  before_action :debug_cookies
-
   # tokenがセットされているか確認
   protect_from_forgery with: :exception
 
-  def debug_cookies
-    Rails.logger.debug "Current cookies: #{cookies.to_hash.inspect}"
-    Rails.logger.debug "Current session: #{session.to_hash.inspect}"
+  def set_csrf_token_header
+    response.set_header('X-CSRF-Token', form_authenticity_toke)
   end
-  
-end
+
+  # APIリクエスト用にCSRF検証を設定
+  protect_from_forgery with: :null_session, if: -> { request.format.json? }
+end   

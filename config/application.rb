@@ -21,6 +21,6 @@ module App
     config.i18n.available_locales = [:en, :ja]
     config.middleware.use ActionDispatch::Cookies
     config.middleware.use ActionDispatch::Session::CookieStore, key: '_back_session'
-    config.action_controller.forgery_protection_origin_check = true;
+    config.action_controller.forgery_protection_origin_check = false;
   end
 end
