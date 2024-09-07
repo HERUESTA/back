@@ -11,7 +11,7 @@ end
 
 module App
   class Application < Rails::Application
-    config.load_defaults 7.0
+    config.load_defaults 7.0a
     config.api_only = true
     config.time_zone = 'Tokyo'
     config.active_record.default_timezone = :local
@@ -21,7 +21,6 @@ module App
     config.i18n.available_locales = [:en, :ja]
 
     config.middleware.use ActionDispatch::Cookies
-    config.middleware.use ActionDispatch::Session::CookieStore, key: '_back_session'
-    config.action_controller.forgery_protection_origin_check = false;
+    config.action_controller.forgery_protection_origin_check = true;
   end
 end
