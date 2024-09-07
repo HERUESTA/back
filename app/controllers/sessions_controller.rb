@@ -11,6 +11,10 @@ class SessionsController < ApplicationController
   end
 
   def callback   
+    if params[:state] != session[:twitch_state]
+      Rails.logger.error "Invalid state parameter"
+      return render_error("無効な認証状態です")
+    end
     Rails.logger.debug "Twitch OAuth callback received with code: #{params[:code]}" # デバッグ用ログ
     
     token_data = fetch_access_token(params[:code])
