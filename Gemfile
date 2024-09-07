@@ -24,6 +24,7 @@ gem 'rack-cors', require: 'rack/cors'
 gem 'devise'
 gem 'omniauth'
 gem 'omniauth-twitch'
+gem "rails_same_site_cookie", "~> 0.1.8"  # 追加する
 
 
 group :development, :test do
