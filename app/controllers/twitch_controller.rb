@@ -74,6 +74,7 @@ end
   end
 
   def send_twitch_request(uri)
+    Rails.logger.debug "Requesting URI: #{uri}"
     request = Net::HTTP::Get.new(uri)
     request['Client-ID'] = ENV['TWITCH_CLIENT_ID']
     request['Authorization'] = "Bearer #{ENV['TWITCH_ACCESS_TOKEN']}"
