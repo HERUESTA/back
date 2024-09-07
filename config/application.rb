@@ -20,6 +20,7 @@ module App
     # 使用可能なロケールを指定
     config.i18n.available_locales = [:en, :ja]
     config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore, key: '_back_session'
     config.action_controller.forgery_protection_origin_check = true;
   end
 end
