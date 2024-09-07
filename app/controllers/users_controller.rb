@@ -1,3 +1,7 @@
+class UsersController < ApplicationController
+  include Devise::Controllers::Helpers
+  before_action :authenticate_user!
+
 def profile
   unless current_user
     Rails.logger.warn "Unauthorized access attempt detected" # 認証されていないアクセスの警告ログ
