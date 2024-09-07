@@ -3,6 +3,7 @@ class UsersController < ApplicationController
   before_action :authenticate_user!
 
   def profile
+    Rails.logger.debug "Session in profile: #{session.inspect}" # プロフィール取得後のセッションの状態をデバッグログに記録
     unless current_user
       Rails.logger.warn "Unauthorized access attempt detected" # 認証されていないアクセスの警告ログ
       return render json: { error: 'ユーザーがサインインしていません。' }, status: :unauthorized

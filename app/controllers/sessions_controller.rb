@@ -11,6 +11,7 @@ class SessionsController < ApplicationController
   end
 
   def callback   
+     Rails.logger.debug "Session State: #{session.inspect}" # セッションの状態をデバックログに記録kiroku
     if params[:state] != session[:twitch_state]
       Rails.logger.error "Invalid state parameter"
       return render_error("無効な認証状態です。", :unprocessable_entity)
@@ -164,6 +165,7 @@ class SessionsController < ApplicationController
     sign_in(user)
     session[:user_id] = user.id
     Rails.logger.debug "User signed in and session set for user_id: #{user.id}" # ユーザーのサインインのデバッグ用ログ
+    Rails.logger.debug "Session after sign-in: #{session.inspect}" # サインイン後のセッションの状態をデバッグログに記録
     redirect_to ENV['NEXT_PUBLIC_REDIRECT_AFTER_LOGIN_URL'], allow_other_host: true
   end
 
