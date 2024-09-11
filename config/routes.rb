@@ -1,4 +1,6 @@
 Rails.application.routes.draw do
+  get 'likes/create'
+  get 'likes/destroy'
   # Devise routes
   devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' }
 
