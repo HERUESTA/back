@@ -1,3 +1,4 @@
+# app/controllers/likes_controller.rb
 class LikesController < ApplicationController
   before_action :authenticate_user!
 
@@ -18,9 +19,21 @@ class LikesController < ApplicationController
     render json: liked_videos
   end
 
+  # いいねした動画を削除
+  def destroy
+    liked_video = current_user.liked_videos.find_by(video_id: params[:id])
+    
+    if liked_video&.destroy
+      render json: { success: true }, status: :ok
+    else
+      render json: { success: false, errors: ['動画が見つかりません'] }, status: :unprocessable_entity
+    end
+  end
+
+
   private
 
   def liked_video_params
-    params.permit(:video_id, :title, :thumbnail_url, :video_url)
+    params.require(:liked_video).permit(:video_id, :title, :thumbnail_url, :video_url)
   end
 end

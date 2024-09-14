@@ -24,6 +24,6 @@ Rails.application.routes.draw do
 
   get '/api/follows', to: 'sessions#follows' # フォローリストを取得するエンドポイント
 
-    # LikesコントローラのルーティングをAPIネームスペースに移動
-      resources :liked_videos, only: [:create, :index], controller: 'likes'
+   # Likesコントローラのルーティング
+   resources :liked_videos, only: [:create, :index, :destroy], controller: 'likes'
 end
