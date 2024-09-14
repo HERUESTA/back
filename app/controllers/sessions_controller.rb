@@ -1,5 +1,7 @@
 class SessionsController < ApplicationController
   before_action :set_twitch_client_details, only: [:twitch]
+  before_action :authenticate_user!, only: [:follows, :destroy]
+  before_action :refresh_token_if_needed, only: [:follows]
 
   def twitch
     state = SecureRandom.hex(24)
@@ -69,6 +71,18 @@ class SessionsController < ApplicationController
   end
 
   private
+
+  def refresh_token_if_needed
+    return unless current_user.token_expired?
+
+    if current_user.refresh_access_token!
+      Rails.logger.debug "Access token refreshed successfully"
+    else
+      Rails.logger.error "Failed to refresh access token"
+      sign_out(current_user)
+      render json: { error: 'セッションの有効期限が切れました。再度ログインしてください。' }, status: :unauthorized
+    end
+  end
 
   def set_twitch_client_details
     @client_id = ENV.fetch('TWITCH_CLIENT_ID') 
