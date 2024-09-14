@@ -1,6 +1,4 @@
 Rails.application.routes.draw do
-  get 'likes/create'
-  get 'likes/destroy'
   # Devise routes
   devise_for :users, controllers: { omniauth_callbacks: 'users/omniauth_callbacks' }
 
@@ -24,6 +22,6 @@ Rails.application.routes.draw do
 
   get '/api/follows', to: 'sessions#follows' # フォローリストを取得するエンドポイント
 
-   # Likesコントローラのルーティング
-   resources :liked_videos, only: [:create, :index, :destroy], controller: 'likes'
+  # Likesコントローラのルーティング
+  resources :liked_videos, only: [:create, :index, :destroy], controller: 'likes'
 end
