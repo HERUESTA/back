@@ -1,5 +1,7 @@
 class User < ApplicationRecord
 
+  has_many :liked_videos, foreign_key: :uid, primary_key: :uid, dependent: :destroy  # いいねした動画との関連
+
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable,
          :omniauthable, omniauth_providers: [:twitch]

@@ -10,18 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_09_08_135853) do
+ActiveRecord::Schema[7.0].define(version: 2024_09_13_170657) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
-  create_table "likes", force: :cascade do |t|
-    t.bigint "user_id", null: false
-    t.bigint "video_id", null: false
+  create_table "liked_videos", force: :cascade do |t|
+    t.string "uid", null: false
+    t.string "video_id", null: false
+    t.string "title"
+    t.string "thumbnail_url"
+    t.string "video_url"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["user_id", "video_id"], name: "index_likes_on_user_id_and_video_id", unique: true
-    t.index ["user_id"], name: "index_likes_on_user_id"
-    t.index ["video_id"], name: "index_likes_on_video_id"
+    t.index ["uid", "video_id"], name: "index_liked_videos_on_uid_and_video_id", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -44,15 +45,4 @@ ActiveRecord::Schema[7.0].define(version: 2024_09_08_135853) do
     t.index ["uid"], name: "index_users_on_uid", unique: true
   end
 
-  create_table "videos", force: :cascade do |t|
-    t.string "title"
-    t.string "thumbnail_url"
-    t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
-    t.string "uid"
-    t.index ["uid"], name: "index_videos_on_uid", unique: true
-  end
-
-  add_foreign_key "likes", "users"
-  add_foreign_key "likes", "videos"
 end
