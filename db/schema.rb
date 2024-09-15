@@ -10,9 +10,20 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2024_09_03_141014) do
+ActiveRecord::Schema[7.0].define(version: 2024_09_13_170657) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "liked_videos", force: :cascade do |t|
+    t.string "uid", null: false
+    t.string "video_id", null: false
+    t.string "title"
+    t.string "thumbnail_url"
+    t.string "video_url"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["uid", "video_id"], name: "index_liked_videos_on_uid_and_video_id", unique: true
+  end
 
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false

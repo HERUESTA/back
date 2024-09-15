@@ -21,4 +21,7 @@ Rails.application.routes.draw do
   get '/api/user_profile', to: 'users#profile' # ユーザーのプロファイル情報を取得するエンドポイント
 
   get '/api/follows', to: 'sessions#follows' # フォローリストを取得するエンドポイント
+
+  # Likesコントローラのルーティング　変更
+  resources :liked_videos, only: [:create, :index, :destroy], controller: 'likes'
 end
