@@ -15,7 +15,11 @@ Rails.application.routes.draw do
 
   # Twitch routes
   get '/twitch/clips', to: 'twitch#clips_by_game'
-  get '/twitch/:id', to: 'twitch#show'
+
+  # 配信者名検索　
+  namespace :search do
+    get '/streamers/:id', to: 'streamers#show'
+  end
 
   # User profile route
   get '/api/user_profile', to: 'users#profile' # ユーザーのプロファイル情報を取得するエンドポイント

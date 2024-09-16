@@ -241,6 +241,7 @@ DEPENDENCIES
   debug
   devise
   dotenv-rails
+  faraday
   httparty
   omniauth
   omniauth-twitch

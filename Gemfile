@@ -20,11 +20,14 @@ gem 'httparty'
 
 gem 'rack-cors', require: 'rack/cors'
 
+# HTTPrequest
+gem 'faraday'
+
 # Twitch-Token
 gem 'devise'
 gem 'omniauth'
 gem 'omniauth-twitch'
-gem "rails_same_site_cookie", "~> 0.1.8"  # 追加する
+gem "rails_same_site_cookie", "~> 0.1.8" 
 
 
 group :development, :test do

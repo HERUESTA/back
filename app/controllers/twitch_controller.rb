@@ -7,30 +7,6 @@ class TwitchController < ApplicationController
   def index
     redirect_to ENV['NEXT_PUBLIC_REDIRECT_AFTER_LOGIN_URL']  # Next.jsが動作しているURLにリダイレクト
   end
-  # 配信者ID検索
-  def show
-    streamer_name = params[:id]
-    user_id = get_user_id(streamer_name)
-    
-    if user_id.nil?
-      render json: { error: "ユーザーが見つかりませんでした" }, status: :not_found
-      return
-    end
-
-    uri = URI("https://api.twitch.tv/helix/clips?broadcaster_id=#{user_id}")
-    response = send_twitch_request(uri)
-
-    if response.is_a?(Net::HTTPSuccess)
-      clips = JSON.parse(response.body)["data"]
-
-      # クリップのlanguageがjaのものだけを選択
-      japanese_clips = clips.select { |clip| clip["language"] == "ja" }
-
-      render json: {data: japanese_clips}
-    else
-      render json: { error: response.message, body: response.body, status_code: response.code }, status: response.code
-    end
-  end
 
   # ゲーム名検索
 def clips_by_game
@@ -60,18 +36,6 @@ def clips_by_game
 end
 
   private
-
-  def get_user_id(streamer_name)
-    uri = URI("https://api.twitch.tv/helix/users?login=#{streamer_name}")
-    response = send_twitch_request(uri)
-
-    if response.is_a?(Net::HTTPSuccess)
-      user_data = JSON.parse(response.body)
-      user_data['data'].first['id'] if user_data['data'].any?
-    else
-      nil
-    end
-  end
 
   def send_twitch_request(uri)
     Rails.logger.debug "Requesting URI: #{uri}"
